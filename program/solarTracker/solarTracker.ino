@@ -18,8 +18,8 @@ Servo sTop;
 void setup() {
   Serial.begin(9600);
   // Servos initalisiert
-  /*sBase.attach(SERVO_BASE_PIN);
-  sTop.attach(SERVO_TOP_PIN);*/
+  sBase.attach(SERVO_BASE_PIN);
+  sTop.attach(SERVO_TOP_PIN);
 
   delay(2000);
   // potential Error: Lichtsensoren sind anders?
@@ -83,7 +83,7 @@ void loop() {
   
   delay(1000);
   // move Servos
-  /*sTop.write(direction_top);
-  sBase.write(direction_base);*/
+  sTop.write(direction_top);
+  sBase.write(direction_base);
   
 }

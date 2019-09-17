@@ -62,17 +62,17 @@ void loop() {
     direction_base += top_cal > bottom_cal ? 1 : -1;
   }
 
-  Serial.print(top_cal);
-  Serial.print(" ");
-  Serial.print(right_cal);
+   Serial.print(top_cal);
+   Serial.print(" ");
+   Serial.print(right_cal);
    Serial.print(" ");
    Serial.print(bottom_cal);
    Serial.print(" ");
    Serial.println(left_cal);
 
    Serial.print(top);
-  Serial.print(" ");
-  Serial.print(right);
+   Serial.print(" ");
+   Serial.print(right);
    Serial.print(" ");
    Serial.print(bottom);
    Serial.print(" ");
@@ -86,9 +86,17 @@ void loop() {
    Serial.println("-------");
   //Serial.println(direction_top);
   
-  //delay(1000);
+  // Do not move in 0-180 degrees
+  if (direction_top > 180) {
+    direction_top--;
+  } else if (direction_top < 0) {
+    direction_top++;
+  }
+  
   // move Servos
   sTop.write(direction_top);
   sBase.write(direction_base);
+
+   //delay(1000);
   
 }

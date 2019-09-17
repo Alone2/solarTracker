@@ -4,9 +4,9 @@ const int SERVO_BASE_PIN =  10;
 const int SERVO_TOP_PIN =  11;
 
 const int TOP_LIGHT = 0;
-const int BOTTOM_LIGHT = 1;
-const int LEFT_LIGHT = 2;
-const int RIGHT_LIGHT = 3;
+const int RIGHT_LIGHT = 1;
+const int BOTTOM_LIGHT = 2;
+const int LEFT_LIGHT = 3;
 
 int direction_base = 90;
 int direction_top = 90;
@@ -19,29 +19,38 @@ void setup() {
   // Servos initalisiert
   sBase.attach(SERVO_BASE_PIN);
   sTop.attach(SERVO_TOP_PIN);
+
+  // potential Error: Lichtsensoren sind anders?
+  
 }
 
 void loop() {
   //sTop für links - rechts
-  if (analogRead(LEFT_LIGHT) > analogRead(RIGHT_LIGHT)) {
+  int left = analogRead(LEFT_LIGHT);
+  int right = analogRead(RIGHT_LIGHT);
+  Serial.println(left, right);
+  if (left > right) {
     direction_top++;
     Serial.println("Top Servo -> Left");
-  } else {
+  } else if  (left < right) {
     direction_top--;
     Serial.println("Top Servo -> Right");
   }
   
   //sBase für oben - unten
-  if (analogRead(TOP_LIGHT) > analogRead(BOTTOM_LIGHT)) {
+  int top = analogRead(TOP_LIGHT);
+  int bottom = analogRead(TOP_LIGHT) ;
+  Serial.println(top, bottom);
+  if (top > bottom) {
     direction_base++;
     Serial.println("Base Servo -> Right");
-  } else {
+  } else if (top < bottom) {
     direction_base--;
     Serial.println("Base Servo -> Right");
   }
   
   // move Servos
-  sTop.move(direction_top);
-  sBase.move(direction_base);
+  sTop.write(direction_top);
+  sBase.write(direction_base);
   
 }

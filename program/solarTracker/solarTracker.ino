@@ -10,7 +10,7 @@ const int LEFT_LIGHT = 0;
 
 int direction_base = 90;
 int direction_top = 90;
-const int ok_diff = 1;
+const float ok_diff = 0.01;
 
 Servo sBase;
 Servo sTop;
@@ -43,17 +43,21 @@ void loop() {
   //sTop für links - rechts
   float left = analogRead(LEFT_LIGHT);
   float right = analogRead(RIGHT_LIGHT);
+  // kalibrieren
   float left_cal = left / 996;
   float right_cal = right / 994;
+  // get direction of stuff
   if (abs(right_cal - left_cal) > ok_diff) {
     direction_top += right_cal < left_cal ? 1 : -1;
   }
+  
   //sBase für oben - unten
   float top = analogRead(TOP_LIGHT);
   float bottom = analogRead(BOTTOM_LIGHT) ;
+  // kalibrieren
   float top_cal = top / 986;
   float bottom_cal = bottom / 1001;
-
+  // get direction of stuff
   if (abs(top_cal - bottom_cal) > ok_diff) {
     direction_base += top_cal > bottom_cal ? 1 : -1;
   }

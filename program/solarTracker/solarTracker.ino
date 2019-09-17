@@ -18,8 +18,8 @@ Servo sTop;
 void setup() {
   Serial.begin(9600);
   // Servos initalisiert
-  sBase.attach(SERVO_BASE_PIN);
-  sTop.attach(SERVO_TOP_PIN);
+  sBase.attach(SERVO_BASE_PIN, 1000, 2000);
+  sTop.attach(SERVO_TOP_PIN, 1000, 2000);
 
   delay(2000);
   // potential Error: Lichtsensoren sind anders?
@@ -48,7 +48,7 @@ void loop() {
   float right_cal = right / 994;
   // get direction of stuff
   if (abs(right_cal - left_cal) > ok_diff) {
-    direction_top += right_cal < left_cal ? 1 : -1;
+    direction_top += right_cal > left_cal ? 1 : -1;
   }
   
   //sBase für oben - unten
@@ -79,9 +79,14 @@ void loop() {
    Serial.println(left);
 
    Serial.println("-------");
+
+   Serial.println(direction_top);
+   Serial.println(direction_base);
+
+   Serial.println("-------");
   //Serial.println(direction_top);
   
-  delay(1000);
+  //delay(1000);
   // move Servos
   sTop.write(direction_top);
   sBase.write(direction_base);

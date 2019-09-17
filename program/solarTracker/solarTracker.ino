@@ -22,8 +22,8 @@ void setup() {
   sTop.attach(SERVO_TOP_PIN, 1000, 2000);
 
   delay(2000);
-  // potential Error: Lichtsensoren sind anders?
 
+  // debug
   float left = analogRead(LEFT_LIGHT);
   float right = analogRead(RIGHT_LIGHT);
   float top = analogRead(TOP_LIGHT);

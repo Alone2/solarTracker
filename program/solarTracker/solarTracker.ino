@@ -62,6 +62,7 @@ void loop() {
     direction_base += top_cal > bottom_cal ? 1 : -1;
   }
 
+   // Print debug stuff
    Serial.print(top_cal);
    Serial.print(" ");
    Serial.print(right_cal);
@@ -84,7 +85,6 @@ void loop() {
    Serial.println(direction_base);
 
    Serial.println("-------");
-  //Serial.println(direction_top);
   
   // Do not move in 0-180 degrees
   if (direction_top > 180) {

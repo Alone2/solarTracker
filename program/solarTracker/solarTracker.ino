@@ -3,13 +3,14 @@
 const int SERVO_BASE_PIN =  10;
 const int SERVO_TOP_PIN =  11;
 
-const int TOP_LIGHT = 0;
-const int RIGHT_LIGHT = 1;
-const int BOTTOM_LIGHT = 2;
-const int LEFT_LIGHT = 3;
+const int TOP_LIGHT = 3;
+const int RIGHT_LIGHT = 2;
+const int BOTTOM_LIGHT = 1;
+const int LEFT_LIGHT = 0;
 
 int direction_base = 90;
 int direction_top = 90;
+const int ok_diff = 1;
 
 Servo sBase;
 Servo sTop;
@@ -17,40 +18,68 @@ Servo sTop;
 void setup() {
   Serial.begin(9600);
   // Servos initalisiert
-  sBase.attach(SERVO_BASE_PIN);
-  sTop.attach(SERVO_TOP_PIN);
+  /*sBase.attach(SERVO_BASE_PIN);
+  sTop.attach(SERVO_TOP_PIN);*/
 
+  delay(2000);
   // potential Error: Lichtsensoren sind anders?
+
+  float left = analogRead(LEFT_LIGHT);
+  float right = analogRead(RIGHT_LIGHT);
+  float top = analogRead(TOP_LIGHT);
+  float bottom = analogRead(BOTTOM_LIGHT) ;
+
+  Serial.print(top);
+  Serial.print(" ");
+  Serial.print(right);
+   Serial.print(" ");
+   Serial.print(bottom);
+   Serial.print(" ");
+   Serial.println(left);
   
 }
 
 void loop() {
   //sTop für links - rechts
-  int left = analogRead(LEFT_LIGHT);
-  int right = analogRead(RIGHT_LIGHT);
-  Serial.println(left, right);
-  if (left > right) {
-    direction_top++;
-    Serial.println("Top Servo -> Left");
-  } else if  (left < right) {
-    direction_top--;
-    Serial.println("Top Servo -> Right");
+  float left = analogRead(LEFT_LIGHT);
+  float right = analogRead(RIGHT_LIGHT);
+  float left_cal = left / 996;
+  float right_cal = right / 994;
+  if (abs(right_cal - left_cal) > ok_diff) {
+    direction_top += right_cal < left_cal ? 1 : -1;
   }
-  
   //sBase für oben - unten
-  int top = analogRead(TOP_LIGHT);
-  int bottom = analogRead(TOP_LIGHT) ;
-  Serial.println(top, bottom);
-  if (top > bottom) {
-    direction_base++;
-    Serial.println("Base Servo -> Right");
-  } else if (top < bottom) {
-    direction_base--;
-    Serial.println("Base Servo -> Right");
+  float top = analogRead(TOP_LIGHT);
+  float bottom = analogRead(BOTTOM_LIGHT) ;
+  float top_cal = top / 986;
+  float bottom_cal = bottom / 1001;
+
+  if (abs(top_cal - bottom_cal) > ok_diff) {
+    direction_base += top_cal > bottom_cal ? 1 : -1;
   }
+
+  Serial.print(top_cal);
+  Serial.print(" ");
+  Serial.print(right_cal);
+   Serial.print(" ");
+   Serial.print(bottom_cal);
+   Serial.print(" ");
+   Serial.println(left_cal);
+
+   Serial.print(top);
+  Serial.print(" ");
+  Serial.print(right);
+   Serial.print(" ");
+   Serial.print(bottom);
+   Serial.print(" ");
+   Serial.println(left);
+
+   Serial.println("-------");
+  //Serial.println(direction_top);
   
+  delay(1000);
   // move Servos
-  sTop.write(direction_top);
-  sBase.write(direction_base);
+  /*sTop.write(direction_top);
+  sBase.write(direction_base);*/
   
 }

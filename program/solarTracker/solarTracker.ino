@@ -87,11 +87,10 @@ void loop() {
    Serial.println("-------");
   
   // Do not move in 0-180 degrees
-  if (direction_top > 180) {
-    direction_top--;
-  } else if (direction_top < 0) {
-    direction_top++;
-  }
+  direction_top += direction_top > 180 ? -1 : 0;
+  direction_top += direction_top < 0 ? 1 : 0;
+  direction_base += direction_base > 180 ? -1 : 0;
+  direction_base += direction_base < 0 ? 1 : 0;
   
   // move Servos
   sTop.write(direction_top);

@@ -6,7 +6,7 @@
 #include <SPI.h>
 #include <Adafruit_BMP280.h>
 
-static String NAME = "solarTracker V1.3";
+static String NAME = "solarTracker V1.4";
 
 static int SERVO_BASE_PIN =  10;
 static int SERVO_TOP_PIN =  11;
@@ -15,6 +15,8 @@ static int TOP_LIGHT = 3;
 static int RIGHT_LIGHT = 2;
 static int BOTTOM_LIGHT = 1;
 static int LEFT_LIGHT = 0;
+
+static int PEEP = 8;
 
 // OLED display TWI address
 #define OLED_ADDR   0x3C
@@ -64,7 +66,7 @@ void setup() {
    ina219.setCalibration_16V_400mA();
    // temp. sensor
    bmp.begin(BMP280_ADDR);
-  bmp.setSampling(Adafruit_BMP280::MODE_NORMAL, 
+   bmp.setSampling(Adafruit_BMP280::MODE_NORMAL, 
                   Adafruit_BMP280::SAMPLING_X2,  
                   Adafruit_BMP280::SAMPLING_X16, 
                   Adafruit_BMP280::FILTER_X16,    
@@ -122,18 +124,19 @@ void loop() {
   // wait if sun found
   if (shouldWaitBaseCount > 3 && shouldWaitTopCount > 3) {
   //if (true) {
+     //disable motors
     sTop.detach();
     sBase.detach();
+    // play tone
+    tone(PEEP, 200);
     Serial.println("SUN FOUND");
-    display.clearDisplay();
-    display.setCursor(0, 0);
-    display.print(NAME);
-    display.setCursor(0, 10);
-    display.setTextSize(2);
-    display.print("SUN FOUND");
-    display.setTextSize(1);
-    display.display();
-    delay(3400);
+    // display on display
+    bigDisplay("SUN FOUND!");
+    delay(500);
+    //stop playing tone
+    noTone(8); 
+    bigDisplay("SUN FOUND");
+    delay(2900);
   
     for (int i = 0; i < waitTimeSec/4; i++){
       disStart();
@@ -165,6 +168,16 @@ void disStart() {
   printURI(goUp);
 }
 
+void bigDisplay(String str) {
+    display.clearDisplay();
+    display.setCursor(0, 0);
+    display.print(NAME);
+    display.setCursor(0, 10);
+    display.setTextSize(2);
+    display.print(str);
+    display.setTextSize(1);
+    display.display();
+}
 
 float printURI(int howMuchToPrint) {
   // widerstand

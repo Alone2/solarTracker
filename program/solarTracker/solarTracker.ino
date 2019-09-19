@@ -6,7 +6,7 @@
 #include <SPI.h>
 #include <Adafruit_BMP280.h>
 
-static String NAME = "solarTracker V1.2";
+static String NAME = "solarTracker V1.3";
 
 static int SERVO_BASE_PIN =  10;
 static int SERVO_TOP_PIN =  11;
@@ -31,7 +31,7 @@ const int  waitTimeSec =  60;
 
 int direction_base = 180;
 int direction_top = 90;
-const float ok_diff = 0.002;
+const float ok_diff = 0.0025;
 
 int shouldWaitTopCount = 0;
 int shouldWaitBaseCount = 0;
@@ -42,6 +42,10 @@ Servo sTop;
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 Adafruit_INA219 ina219;
 Adafruit_BMP280 bmp;
+
+int goUp = 0;
+
+int loopI = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -121,10 +125,19 @@ void loop() {
     sTop.detach();
     sBase.detach();
     Serial.println("SUN FOUND");
-    
-    for (int i = 0; i < waitTimeSec; i++){
-      printURI();
-      delay(1000);
+    display.clearDisplay();
+    display.setCursor(0, 0);
+    display.print(NAME);
+    display.setCursor(0, 10);
+    display.setTextSize(2);
+    display.print("SUN FOUND");
+    display.setTextSize(1);
+    display.display();
+    delay(3400);
+  
+    for (int i = 0; i < waitTimeSec/4; i++){
+      disStart();
+      delay(8000);
     }
     shouldWaitBaseCount = 0;
     shouldWaitTopCount = 0;
@@ -135,12 +148,25 @@ void loop() {
   //delay(1000);
  
   //display stuff
-  printURI();
+  loopI++;
+  if (loopI > 40) {
+    loopI = 0;
+    disStart();
+  }
+  
+}
 
+// print display stuff
+void disStart() {
+  goUp++;
+  if (goUp > 4) {
+    goUp = 0;
+  }
+  printURI(goUp);
 }
 
 
-float printURI() {
+float printURI(int howMuchToPrint) {
   // widerstand
   float R = 10;
   // 5 weil 5V arduino
@@ -153,14 +179,26 @@ float printURI() {
   
   // Display display
   display.clearDisplay();
-  display.setCursor(0, 0);
+  display.setCursor(0, 0 - howMuchToPrint*10);
   display.print(NAME);
-  display.setCursor(0, 10);
+  display.setCursor(0, 10 - howMuchToPrint*10);
   display.print((String) "" + U + " V, " + P*1000 + " mW" );
-  display.setCursor(0, 20);
   //temperature
-  display.print((String) bmp.readTemperature() + " *C" );
+  display.setCursor(0, 20 - howMuchToPrint*10);
+  display.print((String) "Temp: " + bmp.readTemperature() + " *C" );
+  // motor stuff
+  display.setCursor(0, 30 - howMuchToPrint*10);
+  display.print((String) "Angle Base: " + direction_base );
+  display.setCursor(0, 40 - howMuchToPrint*10);
+  display.print((String) "Angle Top: " + direction_top );
+  // like top
+  display.setCursor(0, 50 - howMuchToPrint*10);
+  display.print(" ");
+  display.setCursor(0, 60 - howMuchToPrint*10);
+  display.print(NAME);
   display.display();
+  display.setCursor(0, 70 - howMuchToPrint*10);
+  display.print((String) "" + U + " V, " + P*1000 + " mW" );
 }
 
 void printSensors(float top, float top_cal, float bottom, float bottom_cal, float right, float right_cal, float left, float left_cal) {

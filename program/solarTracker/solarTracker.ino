@@ -3,8 +3,10 @@
 #include <Adafruit_GFX.h> 
 #include <Servo.h>
 #include <Adafruit_INA219.h>
+#include <SPI.h>
+#include <Adafruit_BMP280.h>
 
-static String NAME = "solarTracker V1.0";
+static String NAME = "solarTracker V1.2";
 
 static int SERVO_BASE_PIN =  10;
 static int SERVO_TOP_PIN =  11;
@@ -20,6 +22,8 @@ static int LEFT_LIGHT = 0;
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 32 // 32 // OLED display height, in pixels
 #define OLED_RESET     4 // Reset pin # (or -1 if sharing Arduino reset pin)
+// BMP sensor
+#define BMP280_ADDR 0x76
 
 const float widerstand = 10;
 
@@ -32,12 +36,12 @@ const float ok_diff = 0.002;
 int shouldWaitTopCount = 0;
 int shouldWaitBaseCount = 0;
 
-
 Servo sBase;
 Servo sTop;
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 Adafruit_INA219 ina219;
+Adafruit_BMP280 bmp;
 
 void setup() {
   Serial.begin(9600);
@@ -54,7 +58,15 @@ void setup() {
   // Measure device
    ina219.begin();
    ina219.setCalibration_16V_400mA();
-
+   // temp. sensor
+   bmp.begin(BMP280_ADDR);
+  bmp.setSampling(Adafruit_BMP280::MODE_NORMAL, 
+                  Adafruit_BMP280::SAMPLING_X2,  
+                  Adafruit_BMP280::SAMPLING_X16, 
+                  Adafruit_BMP280::FILTER_X16,    
+                  Adafruit_BMP280::STANDBY_MS_500); 
+                  
+  //wait
   delay(2000);
 }
 
@@ -121,13 +133,9 @@ void loop() {
   }
 
   //delay(1000);
-
+ 
+  //display stuff
   printURI();
-  /*display.setCursor(0, 0);
-  display.print(printURI());
-
-  // update display with all of the above graphics
-  display.display();*/
 
 }
 
@@ -148,9 +156,10 @@ float printURI() {
   display.setCursor(0, 0);
   display.print(NAME);
   display.setCursor(0, 10);
-  display.print((String) "P: " + P*1000 + " mW");
+  display.print((String) "" + U + " V, " + P*1000 + " mW" );
   display.setCursor(0, 20);
-  display.print((String) "U: " + U + " V ");
+  //temperature
+  display.print((String) bmp.readTemperature() + " *C" );
   display.display();
 }
 

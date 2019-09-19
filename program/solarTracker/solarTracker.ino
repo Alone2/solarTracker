@@ -33,7 +33,7 @@ const int  waitTimeSec =  60;
 
 int direction_base = 180;
 int direction_top = 90;
-const float ok_diff = 0.0025;
+const float ok_diff = 0.003;
 
 int shouldWaitTopCount = 0;
 int shouldWaitBaseCount = 0;
@@ -162,7 +162,7 @@ void loop() {
 // print display stuff
 void disStart() {
   goUp++;
-  if (goUp > 4) {
+  if (goUp > 5) {
     goUp = 0;
   }
   printURI(goUp);
@@ -194,24 +194,27 @@ float printURI(int howMuchToPrint) {
   display.clearDisplay();
   display.setCursor(0, 0 - howMuchToPrint*10);
   display.print(NAME);
+  // voltage etc
   display.setCursor(0, 10 - howMuchToPrint*10);
-  display.print((String) "" + U + " V, " + P*1000 + " mW" );
-  //temperature
+  display.print((String) "Voltage: " + U + "V");
   display.setCursor(0, 20 - howMuchToPrint*10);
+  display.print((String) "Power: " + P*1000 + " mW" );
+  //temperature
+  display.setCursor(0, 30 - howMuchToPrint*10);
   display.print((String) "Temp: " + bmp.readTemperature() + " *C" );
   // motor stuff
-  display.setCursor(0, 30 - howMuchToPrint*10);
-  display.print((String) "Angle Base: " + direction_base );
   display.setCursor(0, 40 - howMuchToPrint*10);
+  display.print((String) "Angle Base: " + direction_base );
+  display.setCursor(0, 50 - howMuchToPrint*10);
   display.print((String) "Angle Top: " + direction_top );
   // like top
-  display.setCursor(0, 50 - howMuchToPrint*10);
-  display.print(" ");
   display.setCursor(0, 60 - howMuchToPrint*10);
+  display.print(" ");
+  display.setCursor(0, 70 - howMuchToPrint*10);
   display.print(NAME);
   display.display();
-  display.setCursor(0, 70 - howMuchToPrint*10);
-  display.print((String) "" + U + " V, " + P*1000 + " mW" );
+  display.setCursor(0, 80 - howMuchToPrint*10);
+  display.print((String) "Voltage: " + U );
 }
 
 void printSensors(float top, float top_cal, float bottom, float bottom_cal, float right, float right_cal, float left, float left_cal) {

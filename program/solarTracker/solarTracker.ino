@@ -1,14 +1,25 @@
+#include <Wire.h>
+#include <Adafruit_SSD1306.h>
+#include <Adafruit_GFX.h> 
 #include <Servo.h>
+#include <Adafruit_INA219.h>
 
-const int SERVO_BASE_PIN =  10;
-const int SERVO_TOP_PIN =  11;
+static String NAME = "solarTracker V1.0";
 
-const int TOP_LIGHT = 3;
-const int RIGHT_LIGHT = 2;
-const int BOTTOM_LIGHT = 1;
-const int LEFT_LIGHT = 0;
+static int SERVO_BASE_PIN =  10;
+static int SERVO_TOP_PIN =  11;
 
-const int SOLAR = 4;
+static int TOP_LIGHT = 3;
+static int RIGHT_LIGHT = 2;
+static int BOTTOM_LIGHT = 1;
+static int LEFT_LIGHT = 0;
+
+// OLED display TWI address
+#define OLED_ADDR   0x3C
+
+#define SCREEN_WIDTH 128 // OLED display width, in pixels
+#define SCREEN_HEIGHT 32 // 32 // OLED display height, in pixels
+#define OLED_RESET     4 // Reset pin # (or -1 if sharing Arduino reset pin)
 
 const float widerstand = 10;
 
@@ -16,7 +27,7 @@ const int  waitTimeSec =  60;
 
 int direction_base = 180;
 int direction_top = 90;
-const float ok_diff = 0.004;
+const float ok_diff = 0.002;
 
 int shouldWaitTopCount = 0;
 int shouldWaitBaseCount = 0;
@@ -25,11 +36,24 @@ int shouldWaitBaseCount = 0;
 Servo sBase;
 Servo sTop;
 
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+Adafruit_INA219 ina219;
+
 void setup() {
   Serial.begin(9600);
   // Servos initalisiert
   sBase.attach(SERVO_BASE_PIN, 1000, 2000);
   sTop.attach(SERVO_TOP_PIN, 1000, 2000);
+  //Display initialisiert
+  display.begin(SSD1306_SWITCHCAPVCC, OLED_ADDR);
+  display.clearDisplay();
+  display.setTextColor(WHITE);
+  display.setCursor(0, 0);
+  display.print(NAME);
+  display.display();
+  // Measure device
+   ina219.begin();
+   ina219.setCalibration_16V_400mA();
 
   delay(2000);
 }
@@ -97,23 +121,37 @@ void loop() {
   }
 
   //delay(1000);
+
   printURI();
+  /*display.setCursor(0, 0);
+  display.print(printURI());
+
+  // update display with all of the above graphics
+  display.display();*/
 
 }
 
 
-void printURI() {
-    // Print solar voltage;
-  float messen = analogRead(SOLAR);
+float printURI() {
   // widerstand
   float R = 10;
   // 5 weil 5V arduino
-  float U = 5 * messen / 1023.0;
+  float U =  ina219.getBusVoltage_V() ;
   float I = U / widerstand;
   float P = U * I;
   Serial.print((String) "U: " + U + " V,  ");
   Serial.print((String) "I: " + I + " A,  ");
   Serial.println((String) "P: " + P*1000 + " mW");
+  
+  // Display display
+  display.clearDisplay();
+  display.setCursor(0, 0);
+  display.print(NAME);
+  display.setCursor(0, 10);
+  display.print((String) "P: " + P*1000 + " mW");
+  display.setCursor(0, 20);
+  display.print((String) "U: " + U + " V ");
+  display.display();
 }
 
 void printSensors(float top, float top_cal, float bottom, float bottom_cal, float right, float right_cal, float left, float left_cal) {

@@ -6,7 +6,7 @@
 #include <SPI.h>
 #include <Adafruit_BMP280.h>
 
-static String NAME = "solarTracker V1.4";
+static String NAME = "solarTracker V2.0";
 
 static int SERVO_BASE_PIN =  10;
 static int SERVO_TOP_PIN =  11;
@@ -82,6 +82,7 @@ void setup() {
   //Display Toggler Stuff
   pinMode(BUTTON_PIN, INPUT);
   pinMode(LED1_PIN, OUTPUT);
+  digitalWrite(LED1_PIN, LOW);
   for(int i = 0; i < graphWidth; i++){
     power_values[i] = 0.0;
   }
@@ -155,7 +156,9 @@ void loop() {
   // wait if sun found
   if (shouldWaitBaseCount > 3 && shouldWaitTopCount > 3) {
   //if (true) {
-     //disable motors
+    //turn off LED
+    digitalWrite(LED1_PIN, LOW);
+    //disable motors
     sTop.detach();
     sBase.detach();
     // play tone
@@ -169,7 +172,7 @@ void loop() {
     bigDisplay("SUN FOUND");
     delay(2900);
   
-    for (int i = 0; i < waitTimeSec/4; i++){
+    for (int i = 0; i < waitTimeSec/8; i++){
       disStart();
       delay(8000);
     }
@@ -181,20 +184,21 @@ void loop() {
   // button stuff
   if(digitalRead(BUTTON_PIN) == HIGH){
     buttonPress = true;
-    digitalWrite(LED1_PIN, HIGH);
+    digitalWrite(LED1_PIN, LOW);
   }
   else if(buttonPress){
     screenMode = !screenMode;
-    digitalWrite(LED1_PIN, LOW);
+    buttonPress = false;
+    digitalWrite(LED1_PIN, HIGH);
   }
   else{
-    digitalWrite(LED1_PIN, LOW);
+    digitalWrite(LED1_PIN, HIGH);
   }
   
   //delay(1000);
  
   //display stuff
-  if(screenMode){
+  if(!screenMode){
     loopI++;
     if (loopI > 40) {
       loopI = 0;
@@ -209,7 +213,7 @@ void loop() {
 // print display stuff
 void disStart() {
   goUp++;
-  if (goUp > 5) {
+  if (goUp > 6) {
     goUp = 0;
   }
   printURI(goUp);
@@ -259,9 +263,9 @@ float printURI(int howMuchToPrint) {
   display.print(" ");
   display.setCursor(0, 70 - howMuchToPrint*10);
   display.print(NAME);
-  display.display();
   display.setCursor(0, 80 - howMuchToPrint*10);
   display.print((String) "Voltage: " + U );
+  display.display();
 }
 
 void printSensors(float top, float top_cal, float bottom, float bottom_cal, float right, float right_cal, float left, float left_cal) {
@@ -291,7 +295,7 @@ void printDirection() {
 
 void drawGraph(){
   float biggest = 0.0;
-  for (int i = 0; i < graphWidth; i++){
+  for (int i = 0; i < graphWidth-2; i++){
     if (power_values[i] > biggest){
       biggest = power_values[i];
     }
@@ -301,7 +305,7 @@ void drawGraph(){
   }
   display.clearDisplay();
   float ratio = SCREEN_WIDTH/graphWidth;
-  for (int i = 0; i < graphWidth; i++){
+  for (int i = 0; i < graphWidth-1; i++){
     display.drawLine(i*ratio, power_values[i]/biggest*SCREEN_HEIGHT, (i+1)*ratio, power_values[i+1]/biggest*SCREEN_HEIGHT, WHITE);
   }
   display.display();

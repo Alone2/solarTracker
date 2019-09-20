@@ -6,10 +6,12 @@
 #include <SPI.h>
 #include <Adafruit_BMP280.h>
 
-static String NAME = "solarTracker V1.4";
+static String NAME = "solarTracker V2.0";
 
 static int SERVO_BASE_PIN =  10;
 static int SERVO_TOP_PIN =  11;
+static int BUTTON_PIN = 2;
+static int LED1_PIN = 4;
 
 static int TOP_LIGHT = 3;
 static int RIGHT_LIGHT = 2;
@@ -26,6 +28,11 @@ static int PEEP = 8;
 #define OLED_RESET     4 // Reset pin # (or -1 if sharing Arduino reset pin)
 // BMP sensor
 #define BMP280_ADDR 0x76
+
+const int graphWidth = SCREEN_WIDTH / 2;
+float power_values[graphWidth];
+bool screenMode = false;  //false = values; true = graph
+bool buttonPress = false;
 
 const float widerstand = 10;
 
@@ -72,6 +79,14 @@ void setup() {
                   Adafruit_BMP280::FILTER_X16,    
                   Adafruit_BMP280::STANDBY_MS_500); 
                   
+  //Display Toggler Stuff
+  pinMode(BUTTON_PIN, INPUT);
+  pinMode(LED1_PIN, OUTPUT);
+  digitalWrite(LED1_PIN, LOW);
+  for(int i = 0; i < graphWidth; i++){
+    power_values[i] = 0.0;
+  }
+  
   //wait
   delay(2000);
 }
@@ -120,11 +135,30 @@ void loop() {
   // move Servos
   sTop.write(direction_top);
   sBase.write(direction_base);
-
+  //update Power array
+  float U =  ina219.getBusVoltage_V() ;
+  float I = U / widerstand;
+  float P = U * I;
+  if(power_values[graphWidth -1] == 0){
+    for (int i = 0; i < graphWidth; i++){
+      if (power_values[i] == 0.0){
+        power_values[i] = P;
+        break;
+      }
+    }
+  }else{
+    for (int i = 0; i < graphWidth-1; i++){
+      power_values[i] = power_values[i+1];
+    }
+    power_values[graphWidth-1] = P;
+  }
+  
   // wait if sun found
   if (shouldWaitBaseCount > 3 && shouldWaitTopCount > 3) {
   //if (true) {
-     //disable motors
+    //turn off LED
+    digitalWrite(LED1_PIN, LOW);
+    //disable motors
     sTop.detach();
     sBase.detach();
     // play tone
@@ -138,7 +172,7 @@ void loop() {
     bigDisplay("SUN FOUND");
     delay(2900);
   
-    for (int i = 0; i < waitTimeSec/4; i++){
+    for (int i = 0; i < waitTimeSec/8; i++){
       disStart();
       delay(8000);
     }
@@ -147,22 +181,39 @@ void loop() {
     sBase.attach(SERVO_BASE_PIN, 1000, 2000);
     sTop.attach(SERVO_TOP_PIN, 1000, 2000);
   }
-
+  // button stuff
+  if(digitalRead(BUTTON_PIN) == HIGH){
+    buttonPress = true;
+    digitalWrite(LED1_PIN, LOW);
+  }
+  else if(buttonPress){
+    screenMode = !screenMode;
+    buttonPress = false;
+    digitalWrite(LED1_PIN, HIGH);
+  }
+  else{
+    digitalWrite(LED1_PIN, HIGH);
+  }
+  
   //delay(1000);
  
   //display stuff
-  loopI++;
-  if (loopI > 40) {
-    loopI = 0;
-    disStart();
+  if(!screenMode){
+    loopI++;
+    if (loopI > 40) {
+      loopI = 0;
+      disStart();
+    }
   }
-  
+  else{
+      drawGraph();
+  }
 }
 
 // print display stuff
 void disStart() {
   goUp++;
-  if (goUp > 5) {
+  if (goUp > 6) {
     goUp = 0;
   }
   printURI(goUp);
@@ -212,9 +263,9 @@ float printURI(int howMuchToPrint) {
   display.print(" ");
   display.setCursor(0, 70 - howMuchToPrint*10);
   display.print(NAME);
-  display.display();
   display.setCursor(0, 80 - howMuchToPrint*10);
   display.print((String) "Voltage: " + U );
+  display.display();
 }
 
 void printSensors(float top, float top_cal, float bottom, float bottom_cal, float right, float right_cal, float left, float left_cal) {
@@ -240,4 +291,22 @@ void printDirection() {
    Serial.println(direction_top);
    Serial.println(direction_base);
 
+}
+
+void drawGraph(){
+  float biggest = 0.0;
+  for (int i = 0; i < graphWidth-2; i++){
+    if (power_values[i] > biggest){
+      biggest = power_values[i];
+    }
+  }
+  if(biggest == 0.0){
+    return;
+  }
+  display.clearDisplay();
+  float ratio = SCREEN_WIDTH/graphWidth;
+  for (int i = 0; i < graphWidth-1; i++){
+    display.drawLine(i*ratio, power_values[i]/biggest*SCREEN_HEIGHT, (i+1)*ratio, power_values[i+1]/biggest*SCREEN_HEIGHT, WHITE);
+  }
+  display.display();
 }

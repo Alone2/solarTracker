@@ -181,9 +181,14 @@ void loop() {
   // button stuff
   if(digitalRead(BUTTON_PIN) == HIGH){
     buttonPress = true;
+    digitalWrite(LED1_PIN, HIGH);
   }
   else if(buttonPress){
     screenMode = !screenMode;
+    digitalWrite(LED1_PIN, LOW);
+  }
+  else{
+    digitalWrite(LED1_PIN, LOW);
   }
   
   //delay(1000);
@@ -197,7 +202,7 @@ void loop() {
     }
   }
   else{
-      
+      drawGraph();
   }
 }
 
